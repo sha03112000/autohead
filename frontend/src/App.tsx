@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from "./components/Sidebar";
 import { Header } from "./components/Header";
 
@@ -7,33 +7,40 @@ import VendorsPage from './pages/VendorsPage';
 import ProductsPage from './pages/ProductsPage';
 import BillingPage from './pages/BillingPage';
 import SignInPage from './pages/SignInPage';
-import {ProductReturnModal} from './components/products/ProductReturnModal';
+import { ProductReturnModal } from './components/products/ProductReturnModal';
 
 
 
 export default function App() {
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("adminToken")
+  );
+
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  const handleSignIn = (email: string, password: string) => {
-    // Simple demo authentication - in production, validate against backend
-    if (email && password) {
+  useEffect(() => {
+    // Auto-login if token exists
+    const token = localStorage.getItem("adminToken");
+    if (token) {
       setIsAuthenticated(true);
     }
-  };
+  }, []);
 
+  const handleSignIn = () => setIsAuthenticated(true);
+  
   const handleLogout = () => {
+    localStorage.clear();
     setIsAuthenticated(false);
     setCurrentPage('dashboard');
   };
 
 
-  
+
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -83,6 +90,7 @@ export default function App() {
     return <SignInPage onSignIn={handleSignIn} />;
   }
 
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar
@@ -92,10 +100,10 @@ export default function App() {
         onToggle={toggleSidebar}
         onQuickAction={handleQuickAction}
       />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header onMenuToggle={toggleSidebar} currentPage={currentPage} onLogout={handleLogout}/>
-        
+        <Header onMenuToggle={toggleSidebar} currentPage={currentPage} onLogout={handleLogout} />
+
         <main className="flex-1 overflow-y-auto">
           {renderPage()}
         </main>
@@ -105,7 +113,7 @@ export default function App() {
       <ProductReturnModal
         isOpen={showReturnModal}
         onClose={() => setShowReturnModal(false)}
-        
+
       />
     </div>
   );

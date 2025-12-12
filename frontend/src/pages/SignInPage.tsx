@@ -1,59 +1,75 @@
 import { useState } from 'react';
 import { LogIn, User, Lock, Eye, EyeOff, Car } from 'lucide-react';
+import { useLoginMutation } from '../store/slices/authApiSlice';
+import type { LoginRequest } from '../types/auth';
 
 interface SignInProps {
-    onSignIn: (username: string, password: string) => void;
+    onSignIn: () => void;
 }
+
+type LoginErrors = {
+  username?: string;
+  password?: string;
+};
+
+
+
+
 
 export default function SignInPage({ onSignIn }: SignInProps) {
 
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    const [login, { isLoading }] = useLoginMutation();
+    const [formData, setFormData] = useState<LoginRequest>({
+        username: '',
+        password: '',
+    })
     const [showPassword, setShowPassword] = useState(false);
-    const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
-    const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState<LoginErrors>({});
+
 
     const validateForm = () => {
-        const newErrors: { username?: string; password?: string } = {};
+        const newErrors: LoginErrors = {
+            username: '',
+            password: '',
+        };
 
-        if (!username.trim()) {
+        if (!formData.username.trim()) {
             newErrors.username = 'Username is required';
-        } else if (username.length < 3) {
+        } else if (formData.username.length < 3) {
             newErrors.username = 'Username must be at least 3 characters';
         }
 
-        if (!password) {
+        if (!formData.password.trim()) {
             newErrors.password = 'Password is required';
-        } else if (password.length < 6) {
+        } else if (formData.password.length < 6) {
             newErrors.password = 'Password must be at least 6 characters';
         }
 
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return !newErrors.username && !newErrors.password;
     };
 
 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
 
-        if (validateForm()) {
-            setIsLoading(true);
-            // Simulate API call
-            setTimeout(() => {
-                setIsLoading(false);
-                onSignIn(username, password);
-            }, 1000);
+        if (!validateForm()) {
+            return;
         }
+        try {
+            await login({...formData}).unwrap();
+            onSignIn();
 
+        } catch (err) {
+           setFormData({ username: '', password: '' });
+            alert("Invalid username or password");
+        }
     };
 
-    const handleDemoLogin = () => {
-        setUsername('admin@caraccessories.com');
-        setPassword('admin123');
-        setErrors({});
-    };
 
+    
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4">
@@ -63,7 +79,7 @@ export default function SignInPage({ onSignIn }: SignInProps) {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-lg">
                         <Car className="w-8 h-8 text-primary-foreground" />
                     </div>
-                    <h1 className="text-foreground mb-2">Car Accessories Admin</h1>
+                    <h1 className="text-foreground mb-2">Auto-Head</h1>
                     <p className="text-muted-foreground">Sign in to manage your inventory</p>
                 </div>
 
@@ -79,10 +95,11 @@ export default function SignInPage({ onSignIn }: SignInProps) {
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                 <input
                                     type="text"
-                                    value={username}
+                                    value={formData.username}
+                                    autoComplete="off"
                                     onChange={(e) => {
-                                        setUsername(e.target.value);
-                                        if (errors.username) setErrors({ ...errors, username: undefined });
+                                        setFormData({ ...formData, username: e.target.value });
+                                        if (errors.username) setErrors({ ...errors, username: "" });
                                     }}
                                     placeholder="Enter your username"
                                     className={`w-full pl-10 pr-4 py-3 bg-background border ${errors.username ? 'border-destructive' : 'border-border'
@@ -103,10 +120,11 @@ export default function SignInPage({ onSignIn }: SignInProps) {
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
-                                    value={password}
+                                    value={formData.password}
+                                    autoComplete="off"
                                     onChange={(e) => {
-                                        setPassword(e.target.value);
-                                        if (errors.password) setErrors({ ...errors, password: undefined });
+                                        setFormData({...formData,  password: e.target.value});
+                                        if (errors.password) setErrors({ ...errors, password: "" });
                                     }}
                                     placeholder="Enter your password"
                                     className={`w-full pl-10 pr-12 py-3 bg-background border ${errors.password ? 'border-destructive' : 'border-border'
@@ -163,16 +181,7 @@ export default function SignInPage({ onSignIn }: SignInProps) {
                                     <span>Sign In</span>
                                 </>
                             )}
-                        </button>
-
-                        {/* Demo Login Button */}
-                        <button
-                            type="button"
-                            onClick={handleDemoLogin}
-                            className="w-full py-3 border border-border rounded-lg hover:bg-accent transition-colors"
-                        >
-                            Use Demo Credentials
-                        </button>
+                        </button>    
                     </form>
 
                     {/* Footer */}
