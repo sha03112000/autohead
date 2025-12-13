@@ -7,7 +7,12 @@ import VendorsPage from './pages/VendorsPage';
 import ProductsPage from './pages/ProductsPage';
 import BillingPage from './pages/BillingPage';
 import SignInPage from './pages/SignInPage';
+import CategoryPage from './pages/CategoryPage';
 import { ProductReturnModal } from './components/products/ProductReturnModal';
+
+
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 
@@ -61,6 +66,7 @@ export default function App() {
       case 'update-stock':
         alert('Update Stock feature - Coming soon!');
         break;
+
       case 'logout':
         alert('Logout feature - Coming soon!');
         break;
@@ -79,6 +85,8 @@ export default function App() {
         return <VendorsPage />;
       case 'billing':
         return <BillingPage />;
+      case 'categories':
+        return <CategoryPage />;
       default:
         return <DashboardPage />;
     }
@@ -107,6 +115,8 @@ export default function App() {
         <main className="flex-1 overflow-y-auto">
           {renderPage()}
         </main>
+
+        <ToastContainer position="top-center"/>
       </div>
 
       {/* Global Product Return Modal */}

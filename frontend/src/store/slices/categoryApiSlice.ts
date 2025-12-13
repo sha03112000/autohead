@@ -1,12 +1,13 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import baseQueryWithAuthCheck from "../baseQueryWithAuthCheck";
 import { HttpMethod } from "../../constants";
-import type { CategoryResponse, CategoryFormData } from "../../types/category";
+import type { CategoryResponse, CategoryListResponse, CategoryFormData, CategoryUpdateData } from "../../types/category";
 
 
 export const categoryApiSlice = createApi({
-    reducerPath: "authApi",
+    reducerPath: "categoryApi",
     baseQuery: baseQueryWithAuthCheck,
+    tagTypes: ["Category"],
     endpoints: (builder) => ({
         // Get all categories
         getCategories: builder.query<CategoryResponse[], void>({
@@ -14,6 +15,8 @@ export const categoryApiSlice = createApi({
                 url: "/categories/",
                 method: HttpMethod.GET,
             }),
+            transformResponse: (response: CategoryListResponse) => response.data,
+            providesTags: ["Category"],
         }),
 
         // Get category by id
@@ -31,15 +34,17 @@ export const categoryApiSlice = createApi({
                 method: HttpMethod.POST,
                 body: category,
             }),
+            invalidatesTags: ["Category"],
         }),
 
         // Update category
-        updateCategory: builder.mutation<CategoryResponse, CategoryFormData>({
+        updateCategory: builder.mutation<CategoryResponse, CategoryUpdateData>({
             query: (category) => ({
                 url: `/categories/${category.id}/`,
                 method: HttpMethod.PUT,
                 body: category,
             }),
+            invalidatesTags: ["Category"],
         }),
 
         // Delete category
@@ -48,6 +53,7 @@ export const categoryApiSlice = createApi({
                 url: `/categories/${id}/`,
                 method: HttpMethod.DELETE,
             }),
+            invalidatesTags: ["Category"],
         }),
     }),
 });

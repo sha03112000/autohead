@@ -37,7 +37,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     // CALL REFRESH ENDPOINT
     const refreshResult = (await baseQuery(
       {
-        url: "/api/refresh/",
+        url: "refresh/",
         method: HttpMethod.POST,
         body: { refresh: refreshToken },
       },

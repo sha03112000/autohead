@@ -4,8 +4,22 @@ export interface CategoryResponse {
     description?: string;
 }
 
+export interface CategoryListResponse {
+    success: boolean;
+    message: string;
+    data: CategoryResponse[];
+}
+
 export interface CategoryFormData {
-    id?: number;
     name: string;
     description?: string;
 }
+
+export interface CategoryUpdateData {
+    id: number;
+    name: string;
+    description?: string;
+}
+
+
+
