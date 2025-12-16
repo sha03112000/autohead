@@ -2,80 +2,16 @@ import { useState } from 'react';
 import { Search, Plus, Edit, Eye, Phone, Mail } from 'lucide-react';
 import { AddEditVendorModal } from '../components/vendors/AddEditVendorModal';
 import { VendorDetailModal } from '../components/vendors/VendorDetailsModal';
+import { useVendorData } from '../hooks/vendor';
+import { toast } from 'react-toastify';
+import { Loader } from 'lucide-react';
+import IsLoadingDisplay from '../components/common/IsLoadingDisplay';
+import IsErrorDisplay from '../components/common/IsErrorDisplay';
+import Pagination from '../components/common/Pagination';
 
 
-const mockVendors = [
-  {
-    id: 1,
-    name: 'AutoParts Pro',
-    contact: '+91 98765 43210',
-    email: 'contact@autopartspro.com',
-    productsSupplied: 234,
-    pendingReturns: 3,
-    lastTransaction: '2 days ago',
-    status: 'active',
-  },
-  {
-    id: 2,
-    name: 'BrightAuto Ltd',
-    contact: '+91 98765 43211',
-    email: 'sales@brightauto.com',
-    productsSupplied: 156,
-    pendingReturns: 0,
-    lastTransaction: '1 week ago',
-    status: 'active',
-  },
-  {
-    id: 3,
-    name: 'ShieldCar Inc',
-    contact: '+91 98765 43212',
-    email: 'info@shieldcar.com',
-    productsSupplied: 89,
-    pendingReturns: 2,
-    lastTransaction: '3 days ago',
-    status: 'active',
-  },
-  {
-    id: 4,
-    name: 'TechDrive Co',
-    contact: '+91 98765 43213',
-    email: 'support@techdrive.com',
-    productsSupplied: 312,
-    pendingReturns: 5,
-    lastTransaction: '1 day ago',
-    status: 'active',
-  },
-  {
-    id: 5,
-    name: 'SafeView Systems',
-    contact: '+91 98765 43214',
-    email: 'hello@safeview.com',
-    productsSupplied: 178,
-    pendingReturns: 1,
-    lastTransaction: '4 days ago',
-    status: 'active',
-  },
-  {
-    id: 6,
-    name: 'LuxuryAuto',
-    contact: '+91 98765 43215',
-    email: 'contact@luxuryauto.com',
-    productsSupplied: 95,
-    pendingReturns: 0,
-    lastTransaction: '2 weeks ago',
-    status: 'active',
-  },
-  {
-    id: 7,
-    name: 'SafetyFirst Ltd',
-    contact: '+91 98765 43216',
-    email: 'info@safetyfirst.com',
-    productsSupplied: 267,
-    pendingReturns: 4,
-    lastTransaction: '5 days ago',
-    status: 'active',
-  },
-];
+
+
 
 
 export default function VendorsPage() {
@@ -83,13 +19,34 @@ export default function VendorsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<any>(null);
+  const [page, setPage] = useState(1);
+
+
+  const {
+    data, isLoading, isError,
+    createVendor, isCreating
+  } = useVendorData(page);
+
+
+  const vendors = data?.results ?? [];
+  const total_pages = data?.total_pages ?? 0;
+  const current_page = data?.current_page ?? 0;
+
+
+  console.log(vendors);
+
+
+  if (isLoading) return <IsLoadingDisplay />;
+
+  if (isError) return <IsErrorDisplay type='Vendor' />;
 
 
 
-  const filteredVendors = mockVendors.filter(
-    (vendor) =>
-      vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.email.toLowerCase().includes(searchTerm.toLowerCase())
+
+  const filteredVendors = vendors.filter(
+    (vd) =>
+      vd.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vd.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddVendor = (vendorData: any) => {
@@ -137,7 +94,7 @@ export default function VendorsPage() {
                   <th className="px-4 py-3 text-left text-sm text-muted-foreground">Email</th>
                   <th className="px-4 py-3 text-left text-sm text-muted-foreground">Products Supplied</th>
                   <th className="px-4 py-3 text-left text-sm text-muted-foreground">Pending Returns</th>
-                  <th className="px-4 py-3 text-left text-sm text-muted-foreground">Last Transaction</th>
+                  
                   <th className="px-4 py-3 text-left text-sm text-muted-foreground">Actions</th>
                 </tr>
               </thead>
@@ -145,24 +102,22 @@ export default function VendorsPage() {
                 {filteredVendors.map((vendor) => (
                   <tr key={vendor.id} className="hover:bg-accent/50 transition-colors">
                     <td className="px-4 py-3.5">{vendor.name}</td>
-                    <td className="px-4 py-3.5 text-sm text-muted-foreground">{vendor.contact}</td>
+                    <td className="px-4 py-3.5 text-sm text-muted-foreground">{vendor.phone}</td>
                     <td className="px-4 py-3.5 text-sm text-muted-foreground">{vendor.email}</td>
-                    <td className="px-4 py-3.5 text-center">{vendor.productsSupplied}</td>
+                    <td className="px-4 py-3.5 text-center">{vendor.address}</td>
                     <td className="px-4 py-3.5 text-center">
                       <span
-                        className={`${vendor.pendingReturns > 0 ? 'text-amber-600' : 'text-green-600'
+                        className={`${vendor.phone > 0 ? 'text-amber-600' : 'text-green-600'
                           }`}
                       >
-                        {vendor.pendingReturns}
+                        {vendor.phone}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-sm text-muted-foreground">
-                      {vendor.lastTransaction}
-                    </td>
+                  
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2">
                         <button
-                           onClick={() => handleViewVendor(vendor)}
+                          onClick={() => handleViewVendor(vendor)}
                           className="p-2 hover:bg-accent rounded-lg transition-colors"
                         >
                           <Eye className="w-4 h-4" />
@@ -190,14 +145,14 @@ export default function VendorsPage() {
                 <div className="flex items-start justify-between">
                   <h3 className="text-foreground">{vendor.name}</h3>
                   <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs">
-                    {vendor.status}
+                    {vendor.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Phone className="w-4 h-4" />
-                    <span>{vendor.contact}</span>
+                    <span>{vendor.phone}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Mail className="w-4 h-4" />
@@ -208,20 +163,16 @@ export default function VendorsPage() {
                 <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border">
                   <div className="text-center">
                     <p className="text-xs text-muted-foreground">Products</p>
-                    <p className="mt-1">{vendor.productsSupplied}</p>
+                    <p className="mt-1">{vendor.phone}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xs text-muted-foreground">Returns</p>
                     <p
-                      className={`mt-1 ${vendor.pendingReturns > 0 ? 'text-amber-600' : 'text-green-600'
+                      className={`mt-1 ${vendor.phone > 0 ? 'text-amber-600' : 'text-green-600'
                         }`}
                     >
-                      {vendor.pendingReturns}
+                      {vendor.phone}
                     </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-muted-foreground">Last Txn</p>
-                    <p className="mt-1 text-xs">{vendor.lastTransaction}</p>
                   </div>
                 </div>
 
@@ -250,8 +201,18 @@ export default function VendorsPage() {
         )}
       </div>
 
+      {/* Pagination */}
+      <Pagination
+        currentPage={current_page}
+        totalPages={total_pages}
+        onPageChange={setPage}
+        onShowLess={() => setPage(1)} // ✅ reset to first page
+        isLoading={isLoading && page > 1}
+      />
+
+
       {/* Add Vendor Modal */}
-       <AddEditVendorModal
+      <AddEditVendorModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSave={handleAddVendor}

@@ -23,6 +23,8 @@ from authentication.views import LoginTokenObtainPairView
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/categories/", include("category.urls")),
+    # path("api/products/", include("product.urls")),
+    path("api/vendors/", include("vendors.urls")),
     path("api/login/", LoginTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]

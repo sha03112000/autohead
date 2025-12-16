@@ -11,7 +11,8 @@ def custom_response(data=None, method='GET', data_name='data', status=200):
             'next': data['next'],
             'previous': data['previous'],
             'results': data['results'],
-            'current_page': data['current_page']
+            'current_page': data['current_page'],
+            'total_pages': data['total_pages'],
         }
         data_to_send = paginated_data
     else:
@@ -22,7 +23,9 @@ def custom_response(data=None, method='GET', data_name='data', status=200):
         'GET_BY_ID': f'{data_name} fetched successfully',
         'POST': f'{data_name} created successfully',
         'PUT': f'{data_name} updated successfully',
-        'DELETE': f'{data_name} deleted successfully'
+        'DELETE': f'{data_name} deleted successfully',
+        'REACTIVATE': f'{data_name} reactivated successfully',
+        'DEACTIVATE': f'{data_name} deactivated successfully',
     }
     message = messages.get(method, 'Operation successful')
 
