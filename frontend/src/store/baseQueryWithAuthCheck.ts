@@ -5,9 +5,13 @@ import type { AuthTokenResponse } from "../types/auth";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("adminToken");
-    if (token) headers.set("Authorization", `Bearer ${token}`);
+  prepareHeaders: (headers : any, { endpoint }) => {
+    if (endpoint !== "refreshToken") {
+      const token = localStorage.getItem("adminToken");
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+    }
     return headers;
   },
 });
@@ -37,19 +41,17 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     // CALL REFRESH ENDPOINT
     const refreshResult = (await baseQuery(
       {
-        url: "refresh/",
+        url: "token/refresh/",
         method: HttpMethod.POST,
         body: { refresh: refreshToken },
       },
-      api,
+      { ...api, endpoint: "refreshToken" }, 
       extraOptions
     )) as { data?: AuthTokenResponse; error?: FetchBaseQueryError };
 
     if (refreshResult.data) {
-      // Store fresh tokens
+      // Store fresh token
       localStorage.setItem("adminToken", refreshResult.data.access);
-      localStorage.setItem("adminRefreshToken", refreshResult.data.refresh);
-
       // retry original request with fresh token
       result = await baseQuery(args, api, extraOptions);
     } else {
@@ -61,6 +63,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
 };
 
 function logoutAndRedirect() {
+  alert("session expired");
   localStorage.clear();
   sessionStorage.clear();
   window.location.reload(); // reloads app → App.tsx shows SignInPage

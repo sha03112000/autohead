@@ -48,7 +48,7 @@ export interface VendorListResponse {
 
 export interface VendorFormData {
     name: string;
-    contact: string;
+    phone: string | number;
     email: string;
     address?: string;
     gst_number?: string;

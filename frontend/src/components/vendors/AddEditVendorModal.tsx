@@ -1,32 +1,39 @@
 import { useState } from 'react';
 import { Modal } from '../Modal';
-import { FormField, Input, TextArea } from '../FormField';
+import { FormField, Input } from '../FormField';
 import { Save, X } from 'lucide-react';
+import type { VendorResponse } from '../../types/vendor';
 
 
 interface AddEditVendorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (vendor: any) => void;
+  isSaving: boolean;
+  mode: 'add' | 'edit';
+  vendors?: VendorResponse | null
 }
 
 
-export function AddEditVendorModal({ isOpen, onClose, onSave }: AddEditVendorModalProps) {
-    const [formData, setFormData] = useState({
-    name: '',
-    contactPerson: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
-    gstin: '',
-    bankName: '',
-    accountNumber: '',
-    ifscCode: '',
-    notes: '',
+export function AddEditVendorModal({ isOpen, onClose, onSave, isSaving, mode, vendors }: AddEditVendorModalProps) {
+
+
+  const [formData, setFormData] = useState({
+    name: vendors?.name || '',
+    phone: vendors?.phone || '',
+    email: vendors?.email || '',
+    address: vendors?.address || '',
+    city: vendors?.city || '',
+    state: vendors?.state || '',
+    pincode: vendors?.pincode || '',
+    gst_number: vendors?.gst_number || '',
+    bank_name: vendors?.bank?.bank_name || '',
+    account_number: vendors?.bank?.account_number || '',
+    ifsc_code: vendors?.bank?.ifsc_code || '',
+    branch_name: vendors?.bank?.branch_name || '',
   });
+
+
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -44,9 +51,9 @@ export function AddEditVendorModal({ isOpen, onClose, onSave }: AddEditVendorMod
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) newErrors.name = 'Vendor name is required';
-    if (!formData.contactPerson.trim()) newErrors.contactPerson = 'Contact person is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    else if (!/^\+?[\d\s-]{10,}$/.test(formData.phone))
+
+    if (!formData.phone) newErrors.phone = 'Phone number is required';
+    else if (Number.isInteger(formData.phone) || formData.phone.toString().length !== 10)
       newErrors.phone = 'Invalid phone number';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
@@ -57,29 +64,32 @@ export function AddEditVendorModal({ isOpen, onClose, onSave }: AddEditVendorMod
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSave(formData);
-      handleClose();
+      try {
+        await onSave(formData);
+        handleClose();
+      } catch (error) {
+        console.error('Error saving vendor:', error);
+      }
     }
   };
 
   const handleClose = () => {
     setFormData({
       name: '',
-      contactPerson: '',
-      phone: '',
+      phone: 0,
       email: '',
       address: '',
       city: '',
       state: '',
       pincode: '',
-      gstin: '',
-      bankName: '',
-      accountNumber: '',
-      ifscCode: '',
-      notes: '',
+      gst_number: '',
+      bank_name: '',
+      account_number: '',
+      ifsc_code: '',
+      branch_name: '',
     });
     setErrors({});
     onClose();
@@ -105,15 +115,7 @@ export function AddEditVendorModal({ isOpen, onClose, onSave }: AddEditVendorMod
               </FormField>
             </div>
 
-            <FormField label="Contact Person" required error={errors.contactPerson}>
-              <Input
-                name="contactPerson"
-                value={formData.contactPerson}
-                onChange={handleChange}
-                placeholder="e.g., Rajesh Kumar"
-                error={!!errors.contactPerson}
-              />
-            </FormField>
+
 
             <FormField label="Phone Number" required error={errors.phone}>
               <Input
@@ -139,8 +141,8 @@ export function AddEditVendorModal({ isOpen, onClose, onSave }: AddEditVendorMod
 
             <FormField label="GST Number">
               <Input
-                name="gstin"
-                value={formData.gstin}
+                name="gst_number"
+                value={formData.gst_number}
                 onChange={handleChange}
                 placeholder="22AAAAA0000A1Z5"
               />
@@ -199,8 +201,8 @@ export function AddEditVendorModal({ isOpen, onClose, onSave }: AddEditVendorMod
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <FormField label="Bank Name">
               <Input
-                name="bankName"
-                value={formData.bankName}
+                name="bank_name"
+                value={formData.bank_name}
                 onChange={handleChange}
                 placeholder="e.g., HDFC Bank"
               />
@@ -208,34 +210,32 @@ export function AddEditVendorModal({ isOpen, onClose, onSave }: AddEditVendorMod
 
             <FormField label="Account Number">
               <Input
-                name="accountNumber"
-                value={formData.accountNumber}
+                name="account_number"
+                value={formData.account_number}
                 onChange={handleChange}
                 placeholder="1234567890"
               />
             </FormField>
 
+            <FormField label="Branch Name">
+              <Input
+                name="branch_name"
+                value={formData.branch_name}
+                onChange={handleChange}
+                placeholder="Test Branch"
+              />
+            </FormField>
+
             <FormField label="IFSC Code">
               <Input
-                name="ifscCode"
-                value={formData.ifscCode}
+                name="ifsc_code"
+                value={formData.ifsc_code}
                 onChange={handleChange}
                 placeholder="HDFC0001234"
               />
             </FormField>
           </div>
         </div>
-
-        {/* Notes */}
-        <FormField label="Notes">
-          <TextArea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            placeholder="Any additional notes about this vendor..."
-            rows={4}
-          />
-        </FormField>
 
         {/* Action Buttons */}
         <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-border">
@@ -249,10 +249,18 @@ export function AddEditVendorModal({ isOpen, onClose, onSave }: AddEditVendorMod
           </button>
           <button
             type="submit"
+            disabled={isSaving}
             className="flex-1 sm:flex-none px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
           >
             <Save className="w-4 h-4" />
-            Save Vendor
+            {isSaving
+            ? mode === "add"
+              ? "Saving..."
+              : "Updating..."
+            : mode === "add"
+              ? "Save Vendor"
+              : "Update Vendor"}
+
           </button>
         </div>
       </form>

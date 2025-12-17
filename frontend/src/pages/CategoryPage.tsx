@@ -4,8 +4,9 @@ import { AddCategoryModal } from '../components/category/AddCategoryModal';
 import { DetailEditCategoryModal } from '../components/category/DetailEditCategoryModal';
 import { useCategoryData } from '../hooks/category';
 import type { CategoryFormData, CategoryResponse } from '../types/category';
+import IsLoadingDisplay from '../components/common/IsLoadingDisplay';
+import IsErrorDisplay from '../components/common/IsErrorDisplay';
 import { toast } from 'react-toastify';
-import { Loader } from 'lucide-react';
 
 
 
@@ -17,26 +18,15 @@ export default function CategoryPage() {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<any>(null);
 
-    const { data: categories = [], isLoading, isError,
-        createCategory, isCreating } = useCategoryData();
+    const {
+        data: categories = [], isLoading, isError,
+        createCategory, isCreating
+    } = useCategoryData();
 
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-[60vh]">
-                <Loader className="w-6 h-6 animate-spin text-primary" />
-            </div>
-        );
-    }
+    if (isLoading) return <IsLoadingDisplay />;
 
-
-    if (isError) {
-        return (
-            <div className="flex items-center justify-center h-[60vh]">
-                <p className="text-red-500">Error fetching categories</p>
-            </div>
-        );
-    }
+    if (isError) return <IsErrorDisplay type='category' />;
 
 
 
@@ -61,7 +51,7 @@ export default function CategoryPage() {
     };
 
 
-    const handleViewVendor = (category: CategoryResponse) => {
+    const handleViewCategory = (category: CategoryResponse) => {
         setSelectedCategory(category);
         setShowDetailModal(true);
     };
@@ -110,7 +100,7 @@ export default function CategoryPage() {
                                         <td className="px-4 py-3.5">
                                             <div className="flex items-center gap-2">
                                                 <button
-                                                    onClick={() => handleViewVendor(category)}
+                                                    onClick={() => handleViewCategory(category)}
                                                     className="p-2 hover:bg-accent rounded-lg transition-colors"
                                                 >
                                                     <Eye className="w-4 h-4" />
@@ -152,7 +142,7 @@ export default function CategoryPage() {
 
                                 <div className="flex gap-2 pt-2">
                                     <button
-                                        onClick={() => handleViewVendor(category)}
+                                        onClick={() => handleViewCategory(category)}
                                         className="flex-1 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Eye className="w-4 h-4" />
@@ -175,7 +165,7 @@ export default function CategoryPage() {
                 )}
             </div>
 
-            {/* Add Vendor Modal */}
+            {/* Add Category Modal */}
             <AddCategoryModal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}

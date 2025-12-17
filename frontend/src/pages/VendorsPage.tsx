@@ -3,11 +3,13 @@ import { Search, Plus, Edit, Eye, Phone, Mail } from 'lucide-react';
 import { AddEditVendorModal } from '../components/vendors/AddEditVendorModal';
 import { VendorDetailModal } from '../components/vendors/VendorDetailsModal';
 import { useVendorData } from '../hooks/vendor';
-import { toast } from 'react-toastify';
-import { Loader } from 'lucide-react';
 import IsLoadingDisplay from '../components/common/IsLoadingDisplay';
 import IsErrorDisplay from '../components/common/IsErrorDisplay';
 import Pagination from '../components/common/Pagination';
+import type { FlatVendorForm } from '../utils/vendorPayLoad';
+import type { VendorResponse } from '../types/vendor';
+import { mapVendorFormToPayload } from '../utils/vendorPayLoad';
+import { toast } from 'react-toastify';
 
 
 
@@ -33,11 +35,10 @@ export default function VendorsPage() {
   const current_page = data?.current_page ?? 0;
 
 
-  console.log(vendors);
+ 
 
 
   if (isLoading) return <IsLoadingDisplay />;
-
   if (isError) return <IsErrorDisplay type='Vendor' />;
 
 
@@ -49,12 +50,22 @@ export default function VendorsPage() {
       vd.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddVendor = (vendorData: any) => {
-    console.log('New vendor:', vendorData);
-    alert('Vendor added successfully!');
+  const handleAddVendor = async(vendorData: FlatVendorForm) => {
+    try {
+      await createVendor(mapVendorFormToPayload(vendorData)).unwrap();
+      toast.success('Vendor added successfully', { autoClose: 2000 });
+    } catch (err: any) {
+      const errorMessage =
+        err?.data?.errors?.name?.[0] ||
+        err?.data?.errors?.email?.[0] ||
+        'Failed to add vendor. Please try again.';
+      toast.error(errorMessage, { autoClose: 2000 });
+
+      throw err;
+    }
   };
 
-  const handleViewVendor = (vendor: any) => {
+  const handleViewVendor = (vendor: VendorResponse) => {
     setSelectedVendor(vendor);
     setShowDetailModal(true);
   };
@@ -94,7 +105,7 @@ export default function VendorsPage() {
                   <th className="px-4 py-3 text-left text-sm text-muted-foreground">Email</th>
                   <th className="px-4 py-3 text-left text-sm text-muted-foreground">Products Supplied</th>
                   <th className="px-4 py-3 text-left text-sm text-muted-foreground">Pending Returns</th>
-                  
+
                   <th className="px-4 py-3 text-left text-sm text-muted-foreground">Actions</th>
                 </tr>
               </thead>
@@ -113,7 +124,7 @@ export default function VendorsPage() {
                         {vendor.phone}
                       </span>
                     </td>
-                  
+
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2">
                         <button
@@ -216,7 +227,10 @@ export default function VendorsPage() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSave={handleAddVendor}
+        isSaving={isCreating}
+        mode="add"
       />
+
       <VendorDetailModal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
