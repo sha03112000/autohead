@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Edit, Eye, Phone, Mail } from 'lucide-react';
+import { Search, Plus, Trash, Eye, Phone, Mail, Loader } from 'lucide-react';
 import { AddEditVendorModal } from '../components/vendors/AddEditVendorModal';
 import { VendorDetailModal } from '../components/vendors/VendorDetailsModal';
 import { useVendorData } from '../hooks/vendor';
@@ -10,6 +10,7 @@ import type { FlatVendorForm } from '../utils/vendorPayLoad';
 import type { VendorResponse } from '../types/vendor';
 import { mapVendorFormToPayload } from '../utils/vendorPayLoad';
 import { toast } from 'react-toastify';
+import WarningDialoge from '../components/common/WarningDialoge';
 
 
 
@@ -23,10 +24,15 @@ export default function VendorsPage() {
   const [selectedVendor, setSelectedVendor] = useState<any>(null);
   const [page, setPage] = useState(1);
 
+  const [vendorIdToDelete, setVendorIdToDelete] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+
 
   const {
     data, isLoading, isError,
-    createVendor, isCreating
+    createVendor, isCreating,
+    deleteVendor, isDeleting,
   } = useVendorData(page);
 
 
@@ -35,7 +41,7 @@ export default function VendorsPage() {
   const current_page = data?.current_page ?? 0;
 
 
- 
+
 
 
   if (isLoading) return <IsLoadingDisplay />;
@@ -50,7 +56,7 @@ export default function VendorsPage() {
       vd.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddVendor = async(vendorData: FlatVendorForm) => {
+  const handleAddVendor = async (vendorData: FlatVendorForm) => {
     try {
       await createVendor(mapVendorFormToPayload(vendorData)).unwrap();
       toast.success('Vendor added successfully', { autoClose: 2000 });
@@ -64,6 +70,34 @@ export default function VendorsPage() {
       throw err;
     }
   };
+
+  const handleDelete = async (id: number) => {
+    setVendorIdToDelete(id);
+    setShowConfirm(true);
+  }
+
+  const confirmDelete = async () => {
+
+    if (!vendorIdToDelete) return;
+
+    const id = vendorIdToDelete;
+    try {
+      await deleteVendor(id).unwrap();
+      toast.success('Vendor deleted successfully', { autoClose: 2000 });
+      setShowDetailModal(false);
+    } catch (err: any) {
+      const errorMessage =
+        err?.data?.errors?.name?.[0] ||
+        err?.data?.message ||
+        'Something went wrong';
+      toast.error(errorMessage, { autoClose: 2000 });
+
+
+    } finally {
+      setShowConfirm(false);
+      setVendorIdToDelete(null);
+    }
+  }
 
   const handleViewVendor = (vendor: VendorResponse) => {
     setSelectedVendor(vendor);
@@ -133,8 +167,18 @@ export default function VendorsPage() {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="p-2 hover:bg-accent rounded-lg transition-colors">
-                          <Edit className="w-4 h-4" />
+                        <button
+                          onClick={() => handleDelete(vendor.id)}
+                          disabled={isDeleting}
+                          className="p-2 hover:bg-accent rounded-lg transition-colors">
+                          {
+                            isDeleting ? (
+                              <Loader />
+                            ) : (
+                              <Trash className="w-4 h-4" />
+                            )
+                          }
+
                         </button>
                       </div>
                     </td>
@@ -195,9 +239,20 @@ export default function VendorsPage() {
                     <Eye className="w-4 h-4" />
                     View
                   </button>
-                  <button className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <Edit className="w-4 h-4" />
-                    Edit
+                  <button
+                    onClick={() => handleDelete(vendor.id)}
+                    disabled={isDeleting}
+                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    {
+                      isDeleting ? (
+                        <Loader />
+                      ) : (
+                        (
+                          <Trash className="w-4 h-4" />
+                        )
+                      )
+                    }
+                    Delete
                   </button>
                 </div>
               </div>
@@ -235,6 +290,15 @@ export default function VendorsPage() {
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         vendor={selectedVendor}
+      />
+
+      {/* comfirm Modal*/}
+      <WarningDialoge
+        isOpen={showConfirm}
+        message="Are you sure you want to delete this vendor?"
+        onConfirm={confirmDelete}
+        onCancel={() => setShowConfirm(false)}
+        isLoading={isDeleting}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Edit, Eye, Notebook } from 'lucide-react';
+import { Search, Plus, Trash, Eye, Notebook } from 'lucide-react';
 import { AddCategoryModal } from '../components/category/AddCategoryModal';
 import { DetailEditCategoryModal } from '../components/category/DetailEditCategoryModal';
 import { useCategoryData } from '../hooks/category';
@@ -17,6 +17,8 @@ export default function CategoryPage() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<any>(null);
+
+   
 
     const {
         data: categories = [], isLoading, isError,
@@ -55,6 +57,8 @@ export default function CategoryPage() {
         setSelectedCategory(category);
         setShowDetailModal(true);
     };
+
+
 
     return (
         <div className="p-4 lg:p-6">
@@ -106,7 +110,7 @@ export default function CategoryPage() {
                                                     <Eye className="w-4 h-4" />
                                                 </button>
                                                 <button className="p-2 hover:bg-accent rounded-lg transition-colors">
-                                                    <Edit className="w-4 h-4" />
+                                                    <Trash className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>
@@ -149,7 +153,7 @@ export default function CategoryPage() {
                                         View
                                     </button>
                                     <button className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors flex items-center justify-center gap-2">
-                                        <Edit className="w-4 h-4" />
+                                        <Trash className="w-4 h-4" />
                                         Edit
                                     </button>
                                 </div>

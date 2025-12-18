@@ -7,7 +7,8 @@ class BankSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bank
         fields = ['id', 'bank_name', 'branch_name', 'account_number', 'ifsc_code', 'is_active', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']   
+        read_only_fields = ['id', 'created_at', 'updated_at']  
+         
         
         
 class VendorSerializer(serializers.ModelSerializer):
@@ -19,7 +20,6 @@ class VendorSerializer(serializers.ModelSerializer):
         
     def create(self, validated_data):
         bank_data = validated_data.pop('bank', None)
-        print("BANK DATA:", bank_data) 
         
         vendor = Vendors.objects.create(**validated_data)
         if bank_data:
