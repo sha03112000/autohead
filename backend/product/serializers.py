@@ -6,7 +6,6 @@ from django.db import transaction
 import cloudinary.uploader
 
 
-
 # Lightweight serializers used for nested read-only representation.
 # These serializers expose only 'id' and 'name' to avoid unnecessary payload
 # and prevent deep nesting inside ProductSerializer.
@@ -20,6 +19,12 @@ class VendorBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vendors
         fields = ["id", "name"]
+
+
+class ProductBriefSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Products
+        fields = ["id", "product_name"]
 
 
 class VendorProductSerializer(serializers.ModelSerializer):
@@ -38,8 +43,6 @@ class ProductSerializer(serializers.ModelSerializer):
     # Nested read-only representation of vendor_products corresponding to this product
     vendor_products = VendorProductSerializer(many=True, read_only=True)
     image_url = serializers.SerializerMethodField()
-    
-    
 
     class Meta:
         model = Products
@@ -50,12 +53,13 @@ class ProductSerializer(serializers.ModelSerializer):
             "updated_at",
             "is_active",
             "stock_count",
-            "image_url"
+            "image_url",
         ]
 
     def get_image_url(self, obj):
         if obj.image:
             return obj.image.url
+
 
 class ProductFormSerializer(serializers.ModelSerializer):
 
@@ -95,7 +99,7 @@ class ProductFormSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        
+
         new_image = validated_data.get("image", None)
 
         if new_image and instance.image:
@@ -103,75 +107,75 @@ class ProductFormSerializer(serializers.ModelSerializer):
             public_id = instance.image.public_id
             cloudinary.uploader.destroy(public_id)
 
-
         # --- Update Product fields ---
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-        
+
         return instance
 
 
+# Serializer for VendorProducts used in product forms (create/update).
 
 
-# vendor = serializers.PrimaryKeyRelatedField(
-    #     queryset=Vendors.objects.all(), write_only=True
-    # )
+class VendorProductRead(serializers.ModelSerializer):
+    vendor_detail = VendorBriefSerializer(read_only=True, source="vendor")
+    product_detail = ProductBriefSerializer(read_only=True, source="product")
 
-    # vendor_code = serializers.CharField(write_only=True)
-    # price = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True)
-    # cost = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True)
-    # stock = serializers.IntegerField(write_only=True)
+    class Meta:
+        model = VendorProducts
+        fields = "__all__"
+        read_only_fields = ["id", "created_at", "updated_at"]
 
-# def create(self, validated_data):
 
-    #     vendor = validated_data.pop("vendor")
-    #     vendor_code = validated_data.pop("vendor_code")
-    #     price = validated_data.pop("price")
-    #     cost = validated_data.pop("cost")
-    #     stock = validated_data.pop("stock")
+class VendorProductFormSerializer(serializers.ModelSerializer):
+    vendor = serializers.PrimaryKeyRelatedField(
+        queryset=Vendors.objects.all(), write_only=True
+    )
 
-    #     product = Products.objects.create(**validated_data)
-    #     VendorProducts.objects.create(
-    #         product=product,
-    #         vendor=vendor,
-    #         vendor_code=vendor_code,
-    #         price=price,
-    #         cost=cost,
-    #         stock=stock,
-    #         is_active=True,
-    #     )
-    #     return product
-    
-    
-    
-    #update
-    # # --- VendorProducts fields ---
-        # vendor = validated_data.pop("vendor", None)
-        # vendor_code = validated_data.pop("vendor_code", None)
-        # price = validated_data.pop("price", None)
-        # cost = validated_data.pop("cost", None)
-        # stock = validated_data.pop("stock", None)
-        
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Products.objects.all(), write_only=True
+    )
 
-        # --- Update VendorProducts if vendor data is provided ---
-        # if vendor:
-        #     vendor_product = VendorProducts.objects.filter(
-        #         product=instance, vendor=vendor
-        #     ).first()
+    class Meta:
+        model = VendorProducts
+        fields = "__all__"
+        read_only_fields = ["id", "created_at", "updated_at"]
 
-        #     updates = {
-        #         "vendor_code": vendor_code,
-        #         "price": price,
-        #         "cost": cost,
-        #         "stock": stock,
-        #     }
+    def validate(self, attrs):
+        vendor = attrs.get("vendor")
+        product = attrs.get("product")
+        vendor_code = attrs.get("vendor_code")
 
-        #     if vendor_product:
-        #         for field, value in updates.items():
-        #             if value is not None:
-        #                 setattr(vendor_product, field, value)
+        if (
+            VendorProducts.objects.filter(
+                vendor=vendor, product=product,
+            )
+            .exclude(pk=self.instance.pk if self.instance else None)
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                "This vendor already has this product with the same vendor code."
+            )
 
-        #         vendor_product.save()
-        
-          # --- IMAGE HANDLING ---
+        if (
+            VendorProducts.objects.filter(vendor=vendor, product=product)
+            .exclude(pk=self.instance.pk if self.instance else None)
+            .exists()
+        ):
+            raise serializers.ValidationError("This vendor already has this product.")
+        return attrs
+
+    @transaction.atomic
+    def create(self, validated_data):
+        vendor_product = VendorProducts.objects.create(**validated_data)
+        return vendor_product
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance

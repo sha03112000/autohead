@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Edit, Eye } from 'lucide-react';
+import { Search, Plus, Trash, Eye } from 'lucide-react';
 import { AddEditProductModal } from '../components/products/AddEditProductModal';
 import { ProductDetailModal } from '../components/products/ProductsDetailsModal';
 import { useProductData } from '../hooks/product';
@@ -10,6 +10,8 @@ import IsErrorDisplay from '../components/common/IsErrorDisplay';
 import ImagePreviewDialoge from '../components/common/ImagePreviewDialoge';
 import { toast } from 'react-toastify';
 import { getUserFriendlyError } from '../utils/errorHelper';
+import WarningDialoge from '../components/common/WarningDialoge';
+import Loader from '../components/Loader';
 
 
 
@@ -24,11 +26,13 @@ export default function ProductsPage() {
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState<any>('');
     const [page, setPage] = useState(1);
+    const [showConfirm, setShowConfirm] = useState(false);
 
 
     const {
         data, isLoading, isError,
         createProduct, isCreating,
+        deleteProduct, isDeleting,
     } = useProductData(page);
 
 
@@ -82,6 +86,28 @@ export default function ProductsPage() {
         setSelectedProduct(product);
         setShowDetailModal(true);
     };
+
+    const handleDeleteProduct = (productId: number) => {
+        setSelectedProduct(productId);
+        setShowConfirm(true);
+    }
+
+    const confirmDeleteProduct = async () => {
+        if (!selectedProduct) return;
+        try {
+            await deleteProduct(selectedProduct).unwrap();
+            toast.success('Product deleted successfully', { autoClose: 2000 });
+            setShowDetailModal(false);
+        } catch (err: any) {
+            const errorMessage = getUserFriendlyError(err, 'Failed to delete product. Please try again.');
+            toast.error(errorMessage, { autoClose: 2000 });
+            throw err;
+        } finally {
+            setShowConfirm(false);
+            setSelectedProduct(null);
+        }
+
+    }
 
 
     return (
@@ -188,8 +214,19 @@ export default function ProductsPage() {
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </button>
-                                                <button className="p-2 hover:bg-accent rounded-lg transition-colors">
-                                                    <Edit className="w-4 h-4" />
+                                                <button
+                                                    onClick={() => handleDeleteProduct(product.id)}
+                                                    disabled={isDeleting}
+                                                    className="p-2 hover:bg-accent rounded-lg transition-colors">
+                                                    {
+                                                        isDeleting ? (
+                                                            <Loader />
+                                                        ) : (
+                                                            (
+                                                                <Trash className="w-4 h-4" />
+                                                            )
+                                                        )
+                                                    }
                                                 </button>
                                             </div>
                                         </td>
@@ -246,9 +283,11 @@ export default function ProductsPage() {
                                         <Eye className="w-4 h-4" />
                                         View
                                     </button>
-                                    <button className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors flex items-center justify-center gap-2">
-                                        <Edit className="w-4 h-4" />
-                                        Edit
+                                    <button
+                                        onClick={() => handleDeleteProduct(product.id)}
+                                        className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                        <Trash className="w-4 h-4" />
+                                        Delete
                                     </button>
                                 </div>
                             </div>
@@ -302,6 +341,14 @@ export default function ProductsPage() {
                 onCancel={() => setShowImageModal(false)}
                 image={selectedImage}
                 product={selectedProduct}
+            />
+
+            {/* confirm Modal */}
+            <WarningDialoge
+                isOpen={showConfirm}
+                onCancel={() => setShowConfirm(false)}
+                onConfirm={confirmDeleteProduct}
+                message="Are you sure you want to delete this product?"
             />
 
         </div>

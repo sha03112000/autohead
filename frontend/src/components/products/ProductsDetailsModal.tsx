@@ -218,12 +218,12 @@ export function ProductDetailModal({ isOpen, onClose, product, categories }: Pro
             className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
             Edit Product
           </button>
-          <button className="flex-1 px-4 py-2.5 border border-border rounded-lg hover:bg-accent transition-colors">
+          {/* <button className="flex-1 px-4 py-2.5 border border-border rounded-lg hover:bg-accent transition-colors">
             Update Stock
-          </button>
-          <button className="flex-1 px-4 py-2.5 border border-destructive text-destructive rounded-lg hover:bg-destructive/10 transition-colors">
+          </button> */}
+          {/* <button className="flex-1 px-4 py-2.5 border border-destructive text-destructive rounded-lg hover:bg-destructive/10 transition-colors">
             Delete Product
-          </button>
+          </button> */}
         </div>
       </div>
 

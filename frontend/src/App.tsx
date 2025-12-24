@@ -9,6 +9,7 @@ import BillingPage from './pages/BillingPage';
 import SignInPage from './pages/SignInPage';
 import CategoryPage from './pages/CategoryPage';
 import { ProductReturnModal } from './components/products/ProductReturnModal';
+import { AddEditVendorProduct } from './components/vendorProduct/AddEditVendorProduct';
 
 
 import { ToastContainer } from 'react-toastify';
@@ -25,6 +26,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
+  const [showAddVendorProductModal, setShowAddVendorProductModal] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -56,6 +58,10 @@ export default function App() {
       case 'add-vendor':
         setCurrentPage('vendors');
         // The Vendors page will handle showing the add modal
+        break;
+      case 'add-vendor-product':
+        setShowAddVendorProductModal(true);
+        // The Products page will handle showing the add modal
         break;
       case 'create-bill':
         setCurrentPage('billing');
@@ -124,6 +130,15 @@ export default function App() {
         isOpen={showReturnModal}
         onClose={() => setShowReturnModal(false)}
 
+      />
+
+      {/* Global Add/Edit Vendor Product Modal */}
+      <AddEditVendorProduct
+        isOpen={showAddVendorProductModal}
+        onClose={() => setShowAddVendorProductModal(false)}
+        mode="add"
+        onSave={() => {}}
+        isSaving={false}
       />
     </div>
   );

@@ -10,7 +10,10 @@ from .serializers import (
     ProductSerializer,
     ProductFormSerializer,
     CategoryBriefSerializer,
-    VendorBriefSerializer
+    VendorBriefSerializer,
+    ProductBriefSerializer,
+    VendorProductFormSerializer,
+    VendorProductRead,
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Sum
@@ -55,6 +58,7 @@ class ProductListCreateView(generics.ListCreateAPIView):
                 0,
             )
         )
+        
         page = self.paginate_queryset(queryset)
 
         categories = CategoryBriefSerializer(
@@ -91,6 +95,7 @@ class ProductListCreateView(generics.ListCreateAPIView):
         )
 
     def create(self, request, *args, **kwargs):
+        print("RAW DATA:", request.data)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -122,3 +127,62 @@ class ProductUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         instance.save(update_fields=["is_active"])
         method = "DEACTIVATE" if instance.is_active else "REACTIVATE"
         return custom_response(data=None, method=method, data_name="Product")
+
+
+# View for listing products and vendors for dropdowns.
+class DropdownDataList(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        
+        products = ProductBriefSerializer(
+            Products.objects.filter(is_active=True), many=True
+        ).data
+        
+        vendor_data = VendorBriefSerializer(
+            Vendors.objects.filter(is_active=True), many=True
+        ).data
+        
+        return custom_response(
+            data={
+                "products": products,
+                "vendors": vendor_data,
+            },
+            method="GET",
+            data_name="dropdown_data",
+        )
+
+
+# View for listing and creating VendorProducts.
+class VendorProductListCreateView(generics.ListCreateAPIView):
+    queryset = (
+        VendorProducts.objects.filter(is_active=True)
+        .select_related("product", "vendor")
+        .order_by("-created_at")
+    )
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return VendorProductFormSerializer
+        return VendorProductRead
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return custom_response(
+            data={"vendor_products": serializer.data},
+            method="GET",
+            data_name="VendorProducts",
+        )
+
+    def create(self, request, *args, **kwargs):
+        # print("RAW DATA:", request.data)
+        
+        serializer = self.get_serializer(data=request.data)
+        print("SERIALIZER USED 👉", serializer.__class__.__name__)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return custom_response(
+            data=serializer.data, method="POST", data_name="VendorProduct"
+        )

@@ -106,7 +106,7 @@ export function AddEditProductModal({ isOpen, onClose, onSave, mode, products, i
 
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Add New Product" size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} title={mode === 'add' ? 'Add Product' : 'Edit Product'} size="lg">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Product Name */}

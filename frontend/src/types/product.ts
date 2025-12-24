@@ -67,4 +67,4 @@ export interface ProductFormValues  {
 
 export interface ProductUpdateValues  extends ProductFormValues  {
     id: number;
-}   
+}

@@ -97,7 +97,7 @@ export function AddEditVendorModal({ isOpen, onClose, onSave, isSaving, mode, ve
 
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Add New Vendor" size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} title={ mode === 'add' ? 'Add Vendor' : 'Edit Vendor' } size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <div>

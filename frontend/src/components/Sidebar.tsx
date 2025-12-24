@@ -28,16 +28,18 @@ export function Sidebar({ currentPage, onNavigate, isOpen, onToggle, onQuickActi
         { id: 'products', label: 'Products', icon: Package },
         { id: 'vendors', label: 'Vendors', icon: Users },
         { id: 'billing', label: 'Billing', icon: FileText },
-        {id: 'categories', label: 'Categories', icon: LayoutGrid },
+        { id: 'categories', label: 'Categories', icon: LayoutGrid },
     ];
 
 
     const quickActions = [
         { id: 'add-product', label: 'Add Product', icon: Plus },
         { id: 'add-vendor', label: 'Add Vendor', icon: Plus },
+        { id: 'add-vendor-product', label: 'Add Vendor Product', icon: Plus },
         { id: 'create-bill', label: 'Create Bill', icon: FileText },
         { id: 'update-stock', label: 'Update Stock', icon: RefreshCw },
         { id: 'product-return', label: 'Product Return', icon: Undo2 },
+
         { id: 'logout', label: 'Logout', icon: Menu },
     ];
 
