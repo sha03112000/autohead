@@ -2,10 +2,13 @@ import { useMemo, useState } from 'react';
 import { Search, Plus, Minus, Trash2, ShoppingCart, DollarSign, Eye } from 'lucide-react';
 import { useDropDownData } from '../hooks/dropDown';
 import type { DropDownListData } from '../types/dropDown';
+import { useBillingData } from '../hooks/billing';
+import { toast } from 'react-toastify';
+import { getUserFriendlyError } from '../utils/errorHelper';
 
 interface CartItem {
     id: number;
-    productId: number;
+    vendorProductId: number;
     name: string;
     sku: string;
     price: number;
@@ -13,16 +16,7 @@ interface CartItem {
 }
 
 
-const availableProducts = [
-    { id: 1, name: 'Premium Floor Mats', sku: 'ACC-001', price: 1200, stock: 45 },
-    { id: 2, name: 'LED Headlight Kit', sku: 'ACC-045', price: 3500, stock: 23 },
-    { id: 3, name: 'Car Cover Waterproof', sku: 'ACC-089', price: 1800, stock: 18 },
-    { id: 4, name: 'Phone Mount Magnetic', sku: 'ACC-112', price: 750, stock: 67 },
-    { id: 5, name: 'Dash Camera HD', sku: 'ACC-156', price: 4500, stock: 31 },
-    { id: 6, name: 'Seat Covers Leather', sku: 'ACC-201', price: 6500, stock: 12 },
-    { id: 7, name: 'Tire Pressure Monitor', sku: 'ACC-267', price: 2500, stock: 54 },
-    { id: 8, name: 'Steering Wheel Cover', sku: 'ACC-298', price: 550, stock: 89 },
-];
+
 
 const billHistory = [
     { id: '#1234', date: '2024-12-10', customer: 'John Doe', amount: 5420, items: 3 },
@@ -37,7 +31,8 @@ export default function BillingPage() {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [discount, setDiscount] = useState(0);
     const [customerName, setCustomerName] = useState('');
-    const { data, isLoading, refetch: dropDownRefetch, } = useDropDownData();
+    const { data, isLoading, refetch } = useDropDownData();
+    const { isCreating, createBill } = useBillingData();
 
     const products: DropDownListData['products'] = data?.products || [];
     const vendorProducts: DropDownListData['vendor_products'] = data?.vendor_products || [];
@@ -57,7 +52,7 @@ export default function BillingPage() {
             id: vp.id,
             product_name: productsById[vp.product]?.product_name,
             stock: vp.stock,
-            price:vp.price,
+            price: vp.price,
         }));
     }, [vendorProducts, productsById]);
 
@@ -71,7 +66,7 @@ export default function BillingPage() {
 
 
     const addToCart = (product: typeof productsWithStock[0]) => {
-        const existingItem = cart.find((item) => item.productId === product.id);
+        const existingItem = cart.find((item) => item.vendorProductId === product.id);
         const availableStock = product.stock;
 
         // Check stock before adding
@@ -79,11 +74,11 @@ export default function BillingPage() {
             alert('Cannot add more items than available in stock.');
             return;
         }
-        
+
         if (existingItem) {
             setCart(
                 cart.map((item) =>
-                    item.productId === product.id
+                    item.vendorProductId === product.id
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 )
@@ -93,7 +88,7 @@ export default function BillingPage() {
                 ...cart,
                 {
                     id: Date.now(),
-                    productId: product.id,
+                    vendorProductId: product.id,
                     name: product.product_name,
                     sku: "suku",
                     price: product.price,
@@ -124,16 +119,35 @@ export default function BillingPage() {
     const discountAmount = (subtotal * discount) / 100;
     const total = subtotal - discountAmount;
 
-    const handleGenerateBill = () => {
+    const handleGenerateBill = async () => {
         if (cart.length === 0) {
             alert('Cart is empty!');
             return;
         }
-        alert(`Bill generated successfully!\nTotal: ₹${total.toLocaleString()}`);
-        setCart([]);
-        setDiscount(0);
-        setCustomerName('');
-        setSearchTerm('');
+        try {
+
+            const payload = {
+                customer_name: customerName,
+                discount: discountAmount,
+                items: cart.map((item) => ({
+                    vendor_product: item.vendorProductId,
+                    quantity: item.quantity,
+                    selling_price: item.price,
+                })),
+            };
+
+            await createBill(payload).unwrap();
+            refetch();
+            
+            toast.success('Bill generated successfully', { autoClose: 2000 });
+            setCart([]);
+            setDiscount(0);
+            setCustomerName('');
+            setSearchTerm('');
+        } catch (err) {
+            const errorMessage = getUserFriendlyError(err, 'Unable to generate bill.');
+            toast.error(errorMessage, { autoClose: 2000 });
+        }
     };
 
 
@@ -283,11 +297,16 @@ export default function BillingPage() {
 
                         <button
                             onClick={handleGenerateBill}
-                            disabled={cart.length === 0}
+                            disabled={cart.length === 0 || isCreating}
                             className="w-full mt-6 px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            <DollarSign className="w-5 h-5" />
-                            Generate Bill
+                            {
+                                isCreating ? 'Generating Bill...' : <>
+                                    <DollarSign className="w-5 h-5" />
+                                    <span>Generate Bill</span>
+                                </>
+                            }
+
                         </button>
                     </div>
                 </div>

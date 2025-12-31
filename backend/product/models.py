@@ -32,7 +32,7 @@ class Products(models.Model):
         ]
         
     def __str__(self):
-        return self.name
+        return self.product_name
         
     #delete old Image
     # def save(self, *args, **kwargs):
@@ -77,7 +77,7 @@ class VendorProducts(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.product.name} - {self.vendor.name}"
+        return f"{self.product.product_name} - {self.vendor.name}"
     
    
         

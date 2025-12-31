@@ -15,6 +15,16 @@ class Bill(models.Model):
         return self.invoice_no
     class Meta:
         db_table = "bills"
+
+    # Override save method to auto-generate invoice_no if not provided
+    def save(self, *args, **kwargs):
+        if not self.invoice_no:
+            # Use the DB id to guarantee uniqueness
+            super().save(*args, **kwargs)  # save first to get ID
+            self.invoice_no = f"INV{self.id:05d}"
+            return super().save(update_fields=["invoice_no"])
+
+        super().save(*args, **kwargs)
         
         
 class BillItem(models.Model):
@@ -25,7 +35,8 @@ class BillItem(models.Model):
     )
     vendor_product = models.ForeignKey(
         VendorProducts,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        related_name="items"
     )
 
     quantity = models.PositiveIntegerField()

@@ -121,8 +121,7 @@ class ProductFormSerializer(serializers.ModelSerializer):
         return instance
 
 
-# Serializer for VendorProducts used in product forms (create/update).
-
+# Serializer for VendorProducts used in product forms (create/update)
 
 class VendorProductRead(serializers.ModelSerializer):
     vendor_detail = VendorBriefSerializer(read_only=True, source="vendor")

@@ -5,6 +5,7 @@ import { vendorApiSlice } from "./slices/vendorApiSlice";
 import { productApiSlice } from "./slices/productApiSlice";
 import { dropDownApiSlice } from "./slices/dropDownApiSlice";
 import { vendorProductApiSlice } from "./slices/vendorProductsApiSlice";
+import { billingApiSlice } from "./slices/billingApiSlice";
 
 export const store = configureStore({
     reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
         [productApiSlice.reducerPath]: productApiSlice.reducer,
         [dropDownApiSlice.reducerPath]: dropDownApiSlice.reducer,
         [vendorProductApiSlice.reducerPath]: vendorProductApiSlice.reducer,
+        [billingApiSlice.reducerPath]:billingApiSlice.reducer,
 
     },
     /**
@@ -32,7 +34,8 @@ export const store = configureStore({
             .concat(vendorApiSlice.middleware)
             .concat(productApiSlice.middleware)
             .concat(dropDownApiSlice.middleware)
-            .concat(vendorProductApiSlice.middleware),
+            .concat(vendorProductApiSlice.middleware)
+            .concat(billingApiSlice.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
