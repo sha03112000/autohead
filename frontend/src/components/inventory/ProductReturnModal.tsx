@@ -82,6 +82,7 @@ export function ProductReturnModal({ isOpen, onClose }: ProductReturnModalProps)
   }, [vendorProducts, formData.product, formData.vendor]);
 
   const vendorProductId = selectedVendorProduct?.id ?? ""; // Get vendor product id
+  console.log('Vendor Product ID:', vendorProductId);
   const stock = selectedVendorProduct?.stock ?? 0;
   const price = selectedVendorProduct?.price ?? 0;
   const productName = selectedProduct?.product_name ?? '';
