@@ -18,7 +18,7 @@ interface CartItem {
 
 
 
-const billHistory = [
+const billHistor = [
     { id: '#1234', date: '2024-12-10', customer: 'John Doe', amount: 5420, items: 3 },
     { id: '#1233', date: '2024-12-10', customer: 'Sarah Smith', amount: 3890, items: 2 },
     { id: '#1232', date: '2024-12-09', customer: 'Mike Johnson', amount: 12300, items: 5 },
@@ -32,10 +32,15 @@ export default function BillingPage() {
     const [discount, setDiscount] = useState(0);
     const [customerName, setCustomerName] = useState('');
     const { data, isLoading, refetch } = useDropDownData();
-    const { isCreating, createBill } = useBillingData();
+    const {
+        data: billData, isLoading: billDataLoading, isError: billDataError,
+        isCreating, createBill
+    } = useBillingData();
 
     const products: DropDownListData['products'] = data?.products || [];
     const vendorProducts: DropDownListData['vendor_products'] = data?.vendor_products || [];
+    const billHistory = billData || [];
+
 
 
     // Get products by ID
@@ -138,7 +143,7 @@ export default function BillingPage() {
 
             await createBill(payload).unwrap();
             refetch();
-            
+
             toast.success('Bill generated successfully', { autoClose: 2000 });
             setCart([]);
             setDiscount(0);
@@ -323,10 +328,10 @@ export default function BillingPage() {
                     <table className="w-full">
                         <thead className="bg-muted/50">
                             <tr>
-                                <th className="px-4 py-3 text-left text-sm text-muted-foreground">Bill ID</th>
+                                <th className="px-4 py-3 text-left text-sm text-muted-foreground">Invoice Num</th>
                                 <th className="px-4 py-3 text-left text-sm text-muted-foreground">Date</th>
                                 <th className="px-4 py-3 text-left text-sm text-muted-foreground">Customer</th>
-                                <th className="px-4 py-3 text-left text-sm text-muted-foreground">Items</th>
+                                <th className="px-4 py-3 text-left text-sm text-muted-foreground">Net Amount</th>
                                 <th className="px-4 py-3 text-left text-sm text-muted-foreground">Amount</th>
                                 <th className="px-4 py-3 text-left text-sm text-muted-foreground">Actions</th>
                             </tr>
@@ -334,11 +339,12 @@ export default function BillingPage() {
                         <tbody className="divide-y divide-border">
                             {billHistory.map((bill) => (
                                 <tr key={bill.id} className="hover:bg-accent/50 transition-colors">
-                                    <td className="px-4 py-3.5">{bill.id}</td>
-                                    <td className="px-4 py-3.5 text-sm text-muted-foreground">{bill.date}</td>
-                                    <td className="px-4 py-3.5">{bill.customer}</td>
-                                    <td className="px-4 py-3.5 text-center">{bill.items}</td>
-                                    <td className="px-4 py-3.5">₹{bill.amount.toLocaleString()}</td>
+                                    <td className="px-4 py-3.5">{bill.invoice_no}</td>
+                                    <td className="px-4 py-3.5 text-sm text-muted-foreground">{
+                                        new Date(bill.created_at).toLocaleString()}</td>
+                                    <td className="px-4 py-3.5">{bill.customer_name ? bill.customer_name : 'N/A'}</td>
+                                    <td className="px-4 py-3.5 text-center">{bill.net_amount}</td>
+                                    <td className="px-4 py-3.5">₹{bill.total_amount.toLocaleString()}</td>
                                     <td className="px-4 py-3.5">
                                         <button className="p-2 hover:bg-accent rounded-lg transition-colors">
                                             <Eye className="w-4 h-4" />

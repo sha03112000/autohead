@@ -1,9 +1,13 @@
-import { useCreateBillMutation } from "../store/slices/billingApiSlice";
+import { useCreateBillMutation, useGetBillsQuery } from "../store/slices/billingApiSlice";
 
 
 export const useBillingData = () => {
-    
+
+    const { data, isLoading, isError } = useGetBillsQuery();
     const [createBill, { isLoading: isCreating }] = useCreateBillMutation();
 
-    return { isCreating, createBill };
+    return {
+        data, isLoading, isError,
+        isCreating, createBill
+    };
 }
