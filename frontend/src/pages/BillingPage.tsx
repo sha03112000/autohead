@@ -21,9 +21,9 @@ export default function BillingPage() {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [discount, setDiscount] = useState(0);
     const [customerName, setCustomerName] = useState('');
-    const { data, isLoading,  } = useDropDownData();
+    const { data  } = useDropDownData();
     const {
-        data: billData, isLoading: billDataLoading, isError: billDataError,
+        data: billData,
         isCreating, createBill
     } = useBillingData();
 

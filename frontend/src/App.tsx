@@ -139,8 +139,8 @@ export default function App() {
         isOpen={showAddVendorProductModal}
         onClose={() => setShowAddVendorProductModal(false)}
         mode="add"
-        onSave={() => {}}
-        isSaving={false}
+        // onSave={() => {}}
+        // isSaving={false}
       />
 
       {/* Global Product Stock Adjustment Modal */}

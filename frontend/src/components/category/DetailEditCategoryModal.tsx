@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal } from '../Modal';
 import { FormField, Input, TextArea } from '../FormField';
-import type { CategoryFormData, CategoryResponse } from '../../types/category';
+import type { CategoryResponse } from '../../types/category';
 import { useCategoryData } from '../../hooks/category';
 import { toast } from 'react-toastify';
 import { Loader } from 'lucide-react';

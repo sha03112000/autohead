@@ -81,7 +81,7 @@ export function ProductReturnModal({ isOpen, onClose }: ProductReturnModalProps)
     );
   }, [vendorProducts, formData.product, formData.vendor]);
 
-  const vendorProductId = selectedVendorProduct?.id ?? ""; // Get vendor product id
+  // const vendorProductId = selectedVendorProduct?.id ?? ""; // Get vendor product id
   
   const stock = selectedVendorProduct?.stock ?? 0;
   const price = selectedVendorProduct?.price ?? 0;

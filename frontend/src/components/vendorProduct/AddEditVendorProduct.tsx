@@ -14,8 +14,8 @@ import { getUserFriendlyError } from '../../utils/errorHelper'
 interface AddEditVendorProductModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (vendor: any) => void;
-    isSaving: boolean;
+    // onSave: (vendor: any) => void;
+    // isSaving: boolean;
     mode: 'add' | 'edit';
     vendorProduct?: VendorProduct | null;
 }
